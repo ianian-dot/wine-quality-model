@@ -1,0 +1,382 @@
+---
+title: "STAT0006 ICA 3"
+subtitle: "Group 13"
+author: "Student numbers: 19017020, 19044591, 19116741, 19095174"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("C:/Users/Rishika George/Desktop/STAT0006/ICA3")
+oldwine <- read.csv("winequality.csv")
+wine <- na.omit(oldwine)
+library(ggplot2)
+library(gridExtra)
+```
+
+## Introduction to the data
+
+This report highlights how we can rank wine quality from Portugal on a scale of 0-10 (10 being the highest quality) based on 11 chemical traits and information on whether it is white or red wine. We have a total of 6495 observations with 34 missing data values. Let us see the consequence of removing these observations on each quality level. [^NA]
+\
+
+|               | 1     | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | 10    
+| :-----------  | :---  | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :---
+| Without NAs   | 0     | 0    | 30   | 214  | 2127 | 2819 | 1074 | 192  | 5    | 0
+| With NAs      | 0     | 0    | 30   | 216  | 2137 | 2835 | 1079 | 193  | 5    | 0
+
+\
+Since the sample is large, we can see that removing these observations do not cause drastic changes on each level. By omitting, we have **6461** observations in our data. We have 1592 observations for red wine and 4869 observations for white. 
+
+Let us look at the variables in our dataset along with their ranges:-
+ 
+| Variable              | Minimum       | Maximum         | Units
+| :-----------          | :-----------  | :-----------    | :-----
+| Fixed acidity         | 3             | 16              | g/dm^3
+| Volatile acidity      | 0             | 1.6             | g/dm^3
+| Citric acid           | 0             | 1.7             | g/dm^3
+| Residual sugar        | 0             | 70              | g/dm^3
+| Chlorides             | 0             | 0.65            | g/dm^3
+| Free sulfur dioxide   | 0             | 300             | mg/dm^3
+| Total sulfur dioxide  | 0             | 450             | mg/dm^3
+| Density               | 0.958         | 1.04            | g/cm^3
+| pH level              | 2.7           | 4.1             | -
+| Sulphates             | 0.2           | 2               | g/dm^3
+| Alcohol               | 8             | 15              | % volume
+
+The mean of wine quality is `r round(mean(wine$quality), 3)` and standard deviation is `r round(sd(wine$quality), 3)`. We can plot each variable against wine to see if there are any obvious relationships between them.
+
+```{r plot, echo=FALSE}
+#plot(wine$type, wine$quality, xlab= 'type', ylab= 'quality', main= 'Wine quality against type', cex.main= 0.85)
+```
+
+The type of wine does not affect the quality directly and they both have similar central tendency and spread. However, it affects the other variables which affect quality. So we shall see how each variable changes depending on the type of wine - red and white. We find that fixed acidity, free sulfur dioxide, total sulfur dioxide and residual sugar do not have a clear relationship with quality. (However, red wines generally have higher fixed acidity than white wines but have lower total sulfur dioxide, lower free sulfur dioxide and lower residual sugar than white wines.)
+\
+```{r plot1, echo=FALSE}
+# fixed acidity
+# ggplot(wine, aes(x=as.factor(wine$quality), y=wine$fixed.acidity,
+                 #fill=wine$type))+
+  #geom_boxplot()+coord_flip()+
+  #scale_fill_manual(values=c("red", "white"))+labs(title = "Quality against Fixed acidity")+ labs(x = "Quality", y= "Fixed acidity in g/dm^3")+ labs(fill = "Wine type")
+```
+On average, higher volatile acidity contributes to a lower quality for red wines but does not seem to affect the quality of white wines.
+\
+\
+<center>
+```{r plot2, echo=FALSE}
+# volatile acidity
+ggplot(wine, aes(x=as.factor(wine$quality), y=wine$volatile.acidity,
+                 fill=wine$type))+
+  geom_boxplot()+coord_flip()+
+  scale_fill_manual(values=c("red", "white"))+labs(title = "Quality against Volatile acidity")+ labs(x = "Quality", y= "Volatile acidity in g/dm^3")+ labs(fill = "Wine type")
+```
+</center>
+\
+\
+\
+On average, the higher the citric acid, the higher the quality for red wines but there is no clear relationship for white wines.
+\
+<center>
+```{r plot3, echo=FALSE}
+# citric acidity
+ggplot(wine, aes(x=as.factor(wine$quality), y=wine$citric.acid,
+                 fill=wine$type))+
+  geom_boxplot()+coord_flip()+
+  scale_fill_manual(values=c("red", "white"))+labs(title = "Quality against Citric acid")+ labs(x = "Quality", y= "Citric acid in g/dm^3")+ labs(fill = "Wine type")
+```
+</center>
+\
+\
+```{r plot4, echo=FALSE}
+# residual sugar
+#ggplot(wine, aes(x=as.factor(wine$quality), y=wine$residual.sugar,
+                 #fill=wine$type))+
+  #geom_boxplot()+coord_flip()+
+  #scale_fill_manual(values=c("red", "white"))+labs(title = "Quality against Residual sugar")+ labs(x = "Quality", y= "Residual sugar in g/dm^3")+ labs(fill = "Wine type")
+
+#Figure 4: Quality against Residual sugar (NO RELATION)
+
+```
+
+Seems that on average, red wine has less chloride content for higher quality wine. No particular relationship can be seen for white wine. We also see many observations lying outside the quartile range and away from the median. Red wines generally have higher chlorides than white wines. 
+
+<center>
+```{r plot5, echo=FALSE}
+# chlorides
+ggplot(wine, aes(x=as.factor(wine$quality), y=wine$chlorides,
+                 fill=wine$type))+
+  geom_boxplot()+coord_flip()+
+  scale_fill_manual(values=c("red", "white"))+labs(title = "Quality against Chlorides")+ labs(x = "Quality", y="Chlorides in g/dm^3")+ labs(fill = "Wine type")
+
+```
+```{r plot6, echo=FALSE}
+# free sulfur dioxide
+#ggplot(wine, aes(x=as.factor(wine$quality), y=wine$free.sulfur.dioxide,
+                 #fill=wine$type))+
+  #geom_boxplot()+coord_flip()+
+  #scale_fill_manual(values=c("red", "white"))+labs(title = "Quality against Free sulfur dioxide")+ labs(x = "Quality", y= "Free sulfur dioxide in mg/dm^3")+ labs(fill = "Wine type")
+#Figure 6: Quality against Free sulfur dioxide (NO RELATION)
+```
+</center>
+\
+
+
+
+```{r plot7, echo=FALSE}
+# total sulfur dioxide
+#ggplot(wine, aes(x=as.factor(wine$quality), y=wine$total.sulfur.dioxide,
+ #                fill=wine$type))+
+#  geom_boxplot()+coord_flip()+
+ # scale_fill_manual(values=c("red", "white"))+labs(title = "Quality against Total sulfur dioxide")+ labs(x = "Quality", y="Total sulfur dioxide in mg/dm^3")+ labs(fill = "Wine type")
+```
+
+\
+On average, quality decreases and density increases for white wines but there is no clear relationship for red wines. There seems to be a value of quality 6 in white wines that seems to lie very far away from the rest of the data. Could be a potential outlier. 
+\
+<center>
+```{r plot8, echo=FALSE}
+# density
+ggplot(wine, aes(x=as.factor(wine$quality), y=wine$density,
+                 fill=wine$type))+
+  geom_boxplot()+coord_flip()+
+  scale_fill_manual(values=c("red", "white"))+labs(title = "Quality against Density")+ labs(x = "Quality", y="Density in g/cm^3")+ labs(fill = "Wine type")
+```
+</center>
+\
+\
+\
+On average, the pH level seems to have opposite effect on the quality of red and white wines.
+
+-    Red: quality decreases with a higher pH
+-    White: quality increases with a higher pH
+
+<center>
+```{r plot9, echo=FALSE}
+# pH level
+ggplot(wine, aes(x=as.factor(wine$quality), y=wine$pH,
+                 fill=wine$type))+
+  geom_boxplot()+coord_flip()+
+  scale_fill_manual(values=c("red", "white"))+labs(title = "Quality against pH level")+ labs(x = "Quality", y="pH level")+ labs(fill = "Wine type")
+```
+</center>
+\
+\
+\
+On average, quality increases as the level of sulphates increases for red wines but does not seem to affect white wines.
+\
+<center>
+```{r plot10, echo=FALSE}
+# sulphates
+ggplot(wine, aes(x=as.factor(wine$quality), y=wine$sulphates,
+                 fill=wine$type))+
+  geom_boxplot()+coord_flip()+
+  scale_fill_manual(values=c("red", "white"))+labs(title = "Quality against Sulphates")+ labs(x = "Quality", y="Sulphates in g/dm^3")+ labs(fill = "Wine type")
+
+```
+</center>
+\
+\
+\
+On average, wines with a higher % volume are generally of higher quality for both types of wine.
+\
+<center>
+```{r plot11, echo=FALSE}
+# alcohol
+ggplot(wine, aes(x=as.factor(wine$quality), y=wine$alcohol,
+                 fill=wine$type))+
+  geom_boxplot()+coord_flip()+
+  scale_fill_manual(values=c("red", "white"))+labs(title = "Quality against Alcohol")+ labs(x = "Quality", y="Alcohol in % volume")+ labs(fill = "Wine type")
+
+```
+</center>
+\
+\
+\
+
+## Model building
+
+We will be using a normal linear regression model to see if we can figure out how to predict wine quality using the given covariates. We noticed a prominent observation on density of value 1.03898 which we shall leave out of the model building process. First we shall see what a model with all 12 covariates looks like. Let us call this **Model 1**.
+
+```{r MODEL1, echo=FALSE}
+#density outlier
+newwine<-wine[-2758,]
+
+model_1 <- lm(quality~., data = newwine)
+summary(model_1)
+```
+
+- The model appears decent but the slope estimates are very small which seems to indicate that the effect of each covariate on quality is extremely small. 
+
+- We can consider looking only at the covariates that showed a relationship with wine quality in the EDA, namely volatile acidity, chlorides, density, alcohol, citric acid, sulphates and pH.
+
+- Additionally, as seen from the EDA, most covariates show different behaviour regarding the wine type, but the type by itself does not show much relationship with quality. Therefore we need to find out how the type of wine affects other covariate, to predict the quality. We can do this by including interaction terms with the chosen covariates (apart from alcohol since they both seem to affect quality the same way).
+
+We shall call this **Model 2**.
+
+```{r model2, echo= FALSE}
+model_2 <- lm(quality~type + type*volatile.acidity + type*chlorides + type*density + alcohol + type*citric.acid + type*sulphates + type*pH, data = newwine)
+summary(model_2)
+```
+
+We can conduct an F-test between Model 2 and the model of chosen covariates without interaction to see if it is better to have interactions. 
+
+```{r ftest, echo= FALSE}
+model_int <- lm(quality~type + volatile.acidity + chlorides + density + alcohol + citric.acid + sulphates + pH, data = newwine)
+anova(model_int, model_2)
+```
+
+As we can see, the p-value is very small which indicates that it is a good idea to keep the interactions.
+Let us now check the model assumptions. The first one is the check for linearity where we plot the standardised residuals against each covariate.
+
+<center>
+```{r model2check, echo= FALSE}
+stdres<-rstandard(model_2)
+fitt<-fitted(model_2)
+
+## Linearity
+wine_dataset_w_res <- cbind(newwine, stdres)
+wine_dataset_w_res_and_fitted <- cbind(wine_dataset_w_res, fitt)
+
+##Before transformation
+a<-ggplot(data = wine_dataset_w_res, aes(x = volatile.acidity, y = stdres, color = type)) + geom_point(size= 0.25)
+b<-ggplot(data = wine_dataset_w_res, aes(x = density, y = stdres, color = type)) + geom_point(size= 0.25)
+c<-ggplot(data = wine_dataset_w_res, aes(x = alcohol, y = stdres, color = type)) + geom_point(size= 0.25)
+d<-ggplot(data = wine_dataset_w_res, aes(x = citric.acid, y = stdres, color = type)) + geom_point(size= 0.25)
+e<-ggplot(data = wine_dataset_w_res, aes(x = sulphates, y = stdres, color = type)) + geom_point(size= 0.25)
+f<-ggplot(data = wine_dataset_w_res, aes(x = pH, y = stdres, color = type)) + geom_point(size= 0.25)
+g<-ggplot(data = wine_dataset_w_res, aes(x = chlorides, y = stdres, color = type)) + geom_point(size= 0.25)
+grid.arrange(a,b,c,d,e,f,g,nrow=4)
+```
+\
+</center>
+
+While the assumption of linearity seems reasonable, homoscedasticity of error terms seem to be violated in volatile acidity, chlorides, citric acids and sulphates. Let us try transformations on these covariates and call this **Model 3**.
+
+```{r MODEL3, echo= FALSE}
+model_3 <- lm((quality)~type + type*log(volatile.acidity) + type*log(chlorides) + 
+                type*density + alcohol + type*sqrt(citric.acid) + type*log(sulphates) + type*pH, 
+              data = newwine)
+summary(model_3)
+```
+
+We performed a log transformation on volatile acidity, chlorides and sulphates and a square root transformation on citric acid. Let us check the model assumptions now. 
+
+## Model checking for final chosen model
+
+There are 4 main assumptions we consider when checking our model- linearity, normality of error terms, homoscedasticity of error terms and independence. We cannot prove whether each of the assumptions hold; instead we look for evidence against them. 
+
+***Assumption 1: Linearity***
+
+One way to check this assumption would be to plot the standardised residuals against each covariate. 
+<center>
+```{r tranf, echo= FALSE}
+
+stdres3<-rstandard(model_3)
+fitt3<-fitted(model_3)
+
+## Linearity
+wine_dataset_w_res3 <- cbind(newwine, stdres3)
+wine_dataset_w_res_and_fitted3 <- cbind(wine_dataset_w_res, fitt3)
+
+p1<-ggplot(data = wine_dataset_w_res3, aes(x = density, y = stdres3, color = type)) + geom_point(size= 0.25) + labs(x = "Density", y="stdres") 
+p2<-ggplot(data = wine_dataset_w_res3, aes(x = alcohol, y = stdres3, color = type)) + geom_point(size= 0.25) + labs(x = "Alcohol", y="stdres")
+p3<-ggplot(data = wine_dataset_w_res3, aes(x = sqrt(citric.acid), y = stdres3, color = type)) + geom_point(size= 0.25) + labs(x = "Sqrt(citric acid)", y="stdres")
+p4<-ggplot(data = wine_dataset_w_res3, aes(x = log(sulphates), y = stdres3, color = type)) + geom_point(size= 0.25) + labs(x = "log(sulphates)", y="stdres")
+p5<-ggplot(data = wine_dataset_w_res3, aes(x = pH, y = stdres3, color = type)) + geom_point(size= 0.25) + labs(x = "pH", y="stdres")
+p6<-ggplot(data = wine_dataset_w_res3, aes(x = log(volatile.acidity), y = stdres3, color = type)) + geom_point(size= 0.25) + labs(x = "log(volatile acidity)", y="stdres")
+p7<-ggplot(data = wine_dataset_w_res3, aes(x = log(chlorides), y = stdres3, color = type)) + geom_point(size= 0.25) + labs(x = "log(chlorides)", y="stdres")
+grid.arrange(p1,p2,p3,p4,p5,p6,p7, nrow=4)
+```
+</center>
+
+We observe a somewhat random scatter for each. No strong evidence to reject the linearity assumption.
+
+***Assumption 2: Homoscedasticity of error terms***
+
+We plot the standardised residuals against the fitted values to check for homoscedasticity.
+
+```{r homoske, echo=FALSE}
+ggplot(data = wine_dataset_w_res3, aes(x = fitt3, y = stdres3)) + geom_point() + labs(x = "Fitted values", y="Standardised Residuals")
+```
+
+Since quality is a discrete variable, no obvious patterns can be inferred from the graph above. Assumption on homoscedasticity seems reasonable.
+
+***Assumption 3: Normality of error terms***
+
+We check this assumption using a qqplot.
+
+```{r norm, echo= FALSE}
+qqnorm (stdres3, main="", ylab = "Standardised Residuals", xlab = "Quantiles of N(0,1)")
+qqline (stdres3)
+```
+
+We can see very heavy tails in the graph. Normality assumption does not seem reasonable since the distance from the line is big, especially for the lower tail. Discussed further under limitations.
+
+***Assumption 4: Independence of error terms***
+
+Serial correlation will not work in this case since the data do not seem to follow any natural ordering. A reason why the independence assumption would not hold is that the data might be collected from specific wineries only. Data needs to be collected randomly to avoid such cases.
+
+\
+\
+
+## Conclusions
+
+
+We can see that **red wine** with good quality on average has higher levels of density, log(sulphates), and alcohol. On the other hand, it has lower pH, log(volatile.acidity), sqrt(citric.acid), and log(chlorides).
+
+We can see that **white wine** with good quality on average have higher levels of density, pH, sqrt(citric.acid), alcohol, and log(chloride). On the other hand, they have lower log(sulphates) and log(volatile.acidity).
+
+R-squared is 0.2852 which means roughly 28% of the variation can be explained by our model. 
+
+\
+\
+
+## Limitations and other possible models
+
+
+Normality seems to be the main problem in our model after calculating the confidence intervals and conducting hypothesis tests. This indicates that our general linear model is not accurate enough and that we should try using other models such as ordinal logistic regression model or decision tree model. Also, the response variable - quality, is collected as discrete data. Therefore, a normal linear model is not the most suitable model for this type of data. 
+
+**(Ordinal) logistic regression model** 
+
+-    More suited to classification problems
+-    Output is probabilistic in nature (threshold between different qualities can be set after)  
+-    Better when we have a response variable with three or more categories with ordering. 
+-    Allows interactions between the covariates - helpful as we are trying to determine how the type of wine affects other covariates in predicting the wine quality. 
+-    For categorical covariates, we can interpret the odds that one category had a higher/lower value on the response variable compared to other groups. For continuous covariates, we can interpret the effect of a unit increase/decrease of that variable on the response. 
+-    Normality is not an assumption, which would be helpful in our case as it was the only violated assumption in our linear regression model. [^logreg]
+
+**Decision tree**
+
+-    Better able to deal with non-linear data (example, see alcohol against quality plot in EDA), thus better suited for our task.
+-    Definitely higher prediction accuracy. [^randforest]
+
+
+***Other limitations:***
+\
+
+1. The given dataset is imbalanced (4897 white and 1598 red), therefore the quality prediction rate is expected to be low, especially for red wines. In addition, quality levels 3, 4, 8 and 9 have a much smaller sample size as compared to levels, so the prediction rate for these levels will also be low. The dataset does not include quality levels 0, 1, 2 and 10 therefore the model would not be able to accurately predict qualities of these levels.
+
+| Quality      | Number of entries | Red         | White
+| :----------: | :-----------:     | :------:    | :-----:
+| 3            | 30                | 10          | 20
+| 4            | 216               | 53          | 163
+| 5            | 2137              | 681         | 1456
+| 6            | 2835              | 637         | 2198
+| 7            | 1079              | 199         | 880
+| 8            | 193               | 18          | 175
+| 9            | 5                 | 0           | 5
+
+\
+
+2. Potential outliers were seen for most covariates - when plotting standardised residuals against fitted values, more than 5% of the points were outside the -2 and +2 lines and some were very extreme. This could also be a data entry issue.
+\
+
+3. A note on the dataset: we cannot simply determine the quality of wine through the chemical attributes. In the real world, the quality of wine is also highly dependent on the notes of a wine, which is a sensory experience and will therefore be different for everyone. Sensory experience is also difficult to quantify, making it harder to predict wine quality. The dataset also does not include how the “quality” data was being collected/quantified. This then involves human judgement, which will likely be subjective and lead to prediction and modelling inaccuracy.
+
+### References
+
+[^NA]: NA removal. https://www.kaggle.com/mgmarques/wines-type-and-quality-classification-exercises
+\
+Anat Peled. https://www.kaggle.com/anatpeled/multi-class-classification-for-wine-quality
+\
+[^logreg]: Logistic Regression model. https://towardsdatascience.com/logistic-regression-detailed-overview-46c4da4303bc
+[^randforest]: Random forest. https://www.ijeast.com/papers/519-529,Tesma403,IJEAST.pdf
